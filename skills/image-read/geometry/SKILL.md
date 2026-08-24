@@ -12,4 +12,4 @@ disable-model-invocation: true
 - 描边周缘采样；阴影≠描边  
 - 禁止大画布留白当控件宽；未换算不得称设计 px  
 
-工具见 `../gates/SKILL.md`。gates 未 OK 时 **禁止**本步。测图优先 `cv2`（失败须先自动修）；仅当 cv2 无法修复时用 Pillow。禁止目测估算。
+工具见 `../gates/SKILL.md`。gates 未 OK 时 **禁止**本步。测图用任一准确可用后端（Python 仅为运行时，不绑定 cv2）。禁止目测估算。

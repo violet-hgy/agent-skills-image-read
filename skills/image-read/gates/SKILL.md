@@ -1,6 +1,6 @@
 ---
 name: gates
-description: 读图·环境与反幻觉（由 image-read 调度）。先自动修 cv2；修不好再用 Pillow。两者皆失败则停止。
+description: 读图·环境与反幻觉。Python 仅为测量运行时；测图后端按准确可用选择，不绑定 cv2。
 disable-model-invocation: true
 metadata:
   internal: "true"
@@ -10,59 +10,54 @@ metadata:
 
 **本步未放行，禁止进入 classify / geometry / structure / visual / output，禁止写 UI，禁止用估算填像素表。**
 
-## 测量栈（优先顺序）
+## 定位
 
-| 优先级 | 项 | 要求 |
-| --- | --- | --- |
-| 0 | Python | 3.10+ **真解释器**（绝对路径；禁止 `WindowsApps` 占位符） |
-| 1 | `cv2`（OpenCV） | **优先**测图后端。失败必须先自动修，禁止立刻改估算 |
-| 2 | Pillow | **仅当 cv2 自动修复仍失败**后的实测后端 |
+- **Python**：测图像素的**运行时工具**（真解释器 3.10+，绝对路径；禁止 WindowsApps 占位符），不是业务依赖。
+- **测图后端**：**不强制 cv2**。Pillow、OpenCV 或其它能在该 Python 上**实测像素**的库均可。
+- **选型原则**：哪个能准确开图、量宽高、采样像素，就用哪个；报告【元数据】写明实际后端。
 
-放行条件：`OK|python` **且**（`OK|cv2` **或** `OK|pillow`）。  
-Python FAIL，或 cv2 与 Pillow **都** FAIL → **环境未就绪**，停止。
+## 放行条件
+
+`OK|python` **且**至少一种测图后端 `OK`（如 `OK|pillow` 或 `OK|cv2`）。
+
+Python FAIL，或**没有任何**可用测图后端 → **环境未就绪**，停止。
 
 ## 强制探测
 
-宿主有 `env-detect` 时先跑其 `measure` profile。否则：
+宿主有 `env-detect` 时先跑 `measure` profile。否则：
 
 ```powershell
 powershell -NoProfile -File "<本 skill 根>/scripts/probe-measure-env.ps1"
 ```
 
-Unix：用已解析的真 `python3` 跑 `<本 skill 根>/scripts/probe-measure-env.py`。
+Unix：用真 `python3` 跑 `<本 skill 根>/scripts/probe-measure-env.py`。
 
 ```text
 OK|python|<abs>|...
-OK|cv2|<ver>          ← 有则优先用 cv2 测
-OK|pillow|<ver>       ← cv2 不可用时必须有
+OK|pillow|<ver>     ← 常见默认后端（够用即可）
+OK|cv2|<ver>        ← 可选；已可用或修复成功时标注，非必需
 FAIL|<tool>|<reason>
 ```
 
-## 失败处理顺序（强制）
+## 失败处理（强制）
 
-出现 `cv2` / `No module named cv2` / `DLL load failed` / 崩溃等：
+任一**当前选用**的测图手段失败时：
 
 1. **禁止**目测估算填【像素参数表】  
-2. **先自动修 cv2**（每步最多一次，修完立刻重测 `import cv2`）  
-   - `pip install opencv-python`  
-   - 仍失败（常见 DLL）：`pip install opencv-python-headless`  
-3. **仍失败 → 再用 Pillow 实测**（缺则 `pip install Pillow` 一次）  
-4. cv2 与 Pillow **都**失败 → 【ImageRead环境未就绪】，停止后续 SOP  
+2. **先自动修该手段**（对应 `pip install` 至多一次，修好立刻重试）  
+3. **仍失败** → 换另一种已探测可用的后端继续实测  
+4. **所有后端都不可用** → 【ImageRead环境未就绪】，停止后续 SOP  
 
-禁止：一报错就跳过修复、改用猜测、或没试修 cv2 就直接 Pillow（脚本会按上序做；Agent 手测时同样必须先修 cv2）。
+不要绑定「必须先修 cv2 才能 Pillow」。顺序由**当前可用性与测量准确度**决定；脚本默认会确保至少 Pillow 可装可测，并顺带探测 cv2。
 
 ## 环境 FAIL → 不往下走
 
-只输出：
-
 ```text
 【ImageRead环境未就绪】
-- FAIL：<python / cv2 / pillow>
-- 已自动尝试：真 Python 路径；opencv-python；opencv-python-headless；Pillow（各至多一次）
+- FAIL：<python 和/或 全部测图后端>
+- 已自动尝试：真 Python；对各后端各至多一次 pip 修复
 - 下一步：人工安装 Python 3.10+ 或设 PYTHON_EXE 后重跑探测
 - 本轮禁止：classify 及之后、估算填表、写 UI
 ```
 
-**禁止**在 FAIL 后继续 geometry/visual「先估个数」、用猜测凑完整报告、写 UI。
-
-【暂时猜测数值占用】仅用于**已有 cv2 或 Pillow 实测能力**时的单字段采样不稳，不得用于「库挂了所以整表估算」。
+【暂时猜测数值占用】仅用于**已有可用测图后端**时的单字段采样不稳，不得用于「库挂了所以整表估算」。
