@@ -1,37 +1,40 @@
 ---
-name: qml
+name: specialization-qml
 description: >-
-  ImageRead 可选语言特化：消费像素报告，落到 Qt Quick/QML。不负责识图。
-  当宿主 SOP 从仓库推断 GUI 为 QML 且本轮要写码时 Read。需宿主 project-bindings。
+  【QML 特化】消费 ImageRead 报告，落到 Qt Quick/QML。不负责识图。
+  当宿主 SOP 从仓库推断 GUI 为 QML 且本轮要写码时调度。
 disable-model-invocation: true
-metadata:
-  internal: "true"
 ---
 
-# Specialization · QML（可选兼容项）
+# Specialization · QML
 
 ## 定位
 
 ```text
-ImageRead 报告  →  本特化写 QML  →  宿主 project-bindings
+image-read 报告  →  本包写 QML  →  项目 bindings（路径/主题/翻译）
 ```
 
-**不是** ImageRead 必经步骤。宿主 SOP 已从仓库推断 **GUI=QML** 且本轮要写码时才 Read 本目录。  
-**前置**：已有 ImageRead 输出（或无图且用户只改已知几何/文案）。  
-**禁止**：在本包内重新测图、跳过报告猜间距。  
-**不含**：任何业务仓库的 project-bindings。
+**不是 ImageRead 必经步骤。** 宿主 SOP 已从仓库推断 **GUI=QML**（如存在 `qml/`、`*.qml`）且本轮要写码时才 Read 本目录。
+
+**前置（硬门控）**：对话中已有 ImageRead 报告，且至少含 `【像素参数表】` 与 `【ImageRead完成，等待宿主消费报告；本阶段不写代码】`。  
+无图且用户只改已知几何/文案时可跳过。  
+
+**禁止**：在本包内重新测图、跳过报告猜间距、以「尽快可见效果」先改 QML。
+
+进入 `implement` 前若缺少【像素参数表】，只输出【流程回退】并停止，**不得**调用 Write/StrReplace 改 UI。
 
 ## 调度顺序
 
-1. 确认宿主已提供 **project-bindings**（目录、主题色 API、文案 API、组件映射）  
-2. `./implement/SKILL.md` — 落码  
-3. `./verify/SKILL.md` — 语法检查、尺寸链、布局复校  
+1. **报告门检**：确认【像素参数表】等关键区块已在对话中；通过后写 `【写码许可】…`  
+2. 确认宿主已提供 **project-bindings**（目录、`Colors`/`qsTr`、组件映射）  
+3. `./implement/SKILL.md` — 落码  
+4. `./verify/SKILL.md` — qmllint、尺寸链、布局复校  
 
 ## 报告字段 → QML（速查）
 
 | 读图字段 | 典型落点 |
 | --- | --- |
-| 控件外框 | `width`/`height` 或 Layout min/preferred/max（经 bindings 的尺寸 API） |
+| 控件外框 | `width`/`height` 或 Layout min/preferred/max（经 bindings 的 `Metrics.dp`） |
 | 距内容区边 | `anchors.*Margin` / `Layout.margins` |
 | itemSpacing | 仅 `ListView.spacing` / 列表向 Column spacing |
 | 列表外距 | 容器/父 Layout margin，禁止塞进 `ListView.spacing` |
@@ -42,6 +45,7 @@ ImageRead 报告  →  本特化写 QML  →  宿主 project-bindings
 
 细节见 `implement/`、`verify/`。
 
-## 与宿主
+## 与本仓库
 
-由宿主 SOP 在 ImageRead 报告之后、**GUI 栈推断为 QML** 时 Read 本文件。路径：`specializations/qml/SKILL.md`。
+项目 bindings：`.cursor/skills/design-to-qml/project-bindings.md`  
+由 `.cursor/skills/design-to-qml/SKILL.md` 调度本包。
