@@ -2,8 +2,8 @@
 name: image-read
 description: >-
   像素级读图报告，防止 AI 幻觉。有附图/截图/切图（PNG/JPEG/WebP/GIF/BMP 等位图），或按图还原、
-  像素对齐、设计评审、实现图内 UI、写码前量尺寸时自动适用。先过 Python+Pillow 环境门；未就绪则停止、禁止估算填表。
-  对位图实测几何与视觉并输出【识图场景】与可视参数表。纯 Figma（MCP 已给节点 px）不要用本 skill。不写代码。
+  像素对齐、设计评审、实现图内 UI、写码前量尺寸时自动适用。先过环境门：优先 cv2 并自动修复，修不好再用 Pillow；
+  两者皆失败则停止、禁止估算填表。纯 Figma（MCP 已给节点 px）不要用本 skill。不写代码。
   Agent Skills 安装源（id: image-read）。
 disable-model-invocation: false
 ---
@@ -57,7 +57,7 @@ image-read/
 
 ## 调度顺序（强制 · 仅识图）
 
-1. `./gates/SKILL.md` — **环境放行**。Python/Pillow 任一 FAIL → 只输出【ImageRead环境未就绪】，**立刻结束**。不得进入下列步骤，不得估算填表，不得写 UI。`cv2` 报错须改用 Pillow，禁止当借口猜数。
+1. `./gates/SKILL.md` — **环境放行**。先自动修 `cv2`，修不好再用 Pillow。Python 失败、或 cv2 与 Pillow 都失败 → 只输出【ImageRead环境未就绪】并结束。禁止估算填表、禁止写 UI。
 2. `./classify/SKILL.md` → 输出【识图场景】
 3. `./geometry/SKILL.md`
 4. `./structure/SKILL.md`（场景需要时）
@@ -73,7 +73,7 @@ image-read/
 
 ### Phase 1：只产出识图报告
 
-当本 skill 被触发时：先跑 **gates**。环境 FAIL 时首次输出只能是【ImageRead环境未就绪】（含修复步骤），**不是**完整参数表，也**不是** UI。
+当本 skill 被触发时：先跑 **gates**（先自动修 cv2，修不好再用 Pillow）。环境 FAIL 时首次输出只能是【ImageRead环境未就绪】，**不是**完整参数表，也**不是** UI。
 
 环境 OK 后，**本轮首次实质性输出必须是 ImageRead 报告**，且只允许：
 
@@ -102,15 +102,15 @@ ImageRead **自身不进入 Phase 2**；本包职责止于完整报告。
 - 阴影只记不当描边  
 - 设计 px + 注明 scale；用户口头 px 优先  
 - **禁止**本包识图流水线内写码  
-- Python/Pillow 未就绪：**禁止**后续 SOP 与整表估算；先修环境  
-- `cv2` 失败：改用 Pillow 实测，禁止改目测估算  
+- Python 未就绪，或 cv2 自动修复失败且 Pillow 也失败：**禁止**后续 SOP 与整表估算  
+- `cv2` 失败：先 pip 修复；仍失败再用 Pillow 实测；禁止改目测估算  
 
 ## 报告完成门控（强制 · 写 UI 前）
 
 如果你的目标包含“实现图内 UI / 写代码 / 报几何 / 修改布局”：
 
 - **gates FAIL**：只输出【ImageRead环境未就绪】并停止；**禁止**用猜测凑完整报告再写 UI。  
-- **gates OK**：在任何代码、实现描述、布局方案之前，必须先输出完整 ImageRead 报告。
+- **gates OK**：用已放行后端测图（优先 `cv2`，否则 Pillow）；在任何代码/实现描述之前必须先输出完整 ImageRead 报告。
 
 报告必须至少包含下列区块标题（原样）：
 

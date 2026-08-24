@@ -1,9 +1,7 @@
 ---
-name: geometry
+name: image-read-geometry
 description: 读图·几何实测（由 image-read 调度）。
 disable-model-invocation: true
-metadata:
-  internal: "true"
 ---
 
 # Geometry
@@ -14,4 +12,4 @@ metadata:
 - 描边周缘采样；阴影≠描边  
 - 禁止大画布留白当控件宽；未换算不得称设计 px  
 
-工具见 `../gates/SKILL.md`。gates 未 OK（Python/Pillow FAIL，或仅 cv2 失败却未改 Pillow）时 **禁止**本步：不得目测量尺寸、不得估算填表。
+工具见 `../gates/SKILL.md`。gates 未 OK 时 **禁止**本步。测图优先 `cv2`（失败须先自动修）；仅当 cv2 无法修复时用 Pillow。禁止目测估算。

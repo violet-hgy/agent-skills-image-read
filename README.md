@@ -1,6 +1,6 @@
 # agent-skills-image-read
 
-**Agent Skills 安装源 · ImageRead**：**像素级读图报告**，防止 AI 幻觉。**先过 Python+Pillow 门**（未就绪则停止，禁止估算填表；`cv2` 非必需）。**自动挂载于位图**。**纯 Figma 不用本包**。
+**Agent Skills 安装源 · ImageRead**：**像素级读图报告**，防止 AI 幻觉。**环境门：优先 cv2 并自动修复，修不好再用 Pillow**；两者皆失败则停止，禁止估算。**自动挂载于位图**。**纯 Figma 不用本包**。
 
 - **对外产品名：** ImageRead  
 - **安装 id / 目录名：** `image-read`（Agent Skills 要求 `name` 与文件夹一致，仅小写+连字符）  
@@ -15,7 +15,7 @@ agent-skills-image-read/
     └── image-read/                      ← 唯一可安装 skill（ImageRead）
         ├── SKILL.md
         ├── classify/ gates/ geometry/ structure/ visual/ output/
-        ├── scripts/                     ← probe-measure-env：Python+Pillow 硬门
+        ├── scripts/                     ← 探测：修 cv2 → 再 Pillow
         └── specializations/             ← 可选 · 语言特化（非识图流水线）
             └── qml/                     ← 兼容项：消费报告 → QML
                 ├── SKILL.md
