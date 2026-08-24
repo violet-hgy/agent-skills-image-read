@@ -2,8 +2,8 @@
 name: image-read
 description: >-
   像素级读图报告，防止 AI 幻觉。有附图/截图/切图（PNG/JPEG/WebP/GIF/BMP 等位图），或按图还原、
-  像素对齐、设计评审、实现图内 UI、写码前量尺寸时自动适用。对位图实测几何与视觉并输出【识图场景】
-  与可视参数表；禁止未读图写尺寸。纯 Figma（MCP 已给节点 px）不要用本 skill。不写代码、不依赖 project-bindings。
+  像素对齐、设计评审、实现图内 UI、写码前量尺寸时自动适用。先过 Python+Pillow 环境门；未就绪则停止、禁止估算填表。
+  对位图实测几何与视觉并输出【识图场景】与可视参数表。纯 Figma（MCP 已给节点 px）不要用本 skill。不写代码。
   Agent Skills 安装源（id: image-read）。
 disable-model-invocation: false
 ---
@@ -57,14 +57,14 @@ image-read/
 
 ## 调度顺序（强制 · 仅识图）
 
-1. `./gates/SKILL.md`
+1. `./gates/SKILL.md` — **环境放行**。Python/Pillow 任一 FAIL → 只输出【ImageRead环境未就绪】，**立刻结束**。不得进入下列步骤，不得估算填表，不得写 UI。`cv2` 报错须改用 Pillow，禁止当借口猜数。
 2. `./classify/SKILL.md` → 输出【识图场景】
 3. `./geometry/SKILL.md`
 4. `./structure/SKILL.md`（场景需要时）
 5. `./visual/SKILL.md`
 6. `./output/SKILL.md` → 完整报告
 
-结束后输出完整报告；**本包职责终止**。
+**gates 未 OK 时本包职责已终止**（修环境后再从头执行）。gates OK 后才出完整报告。
 
 - **只识图 / 评审** → 报告即交付。  
 - **要写码** → 由宿主 SOP 读仓库推断 GUI 栈；匹配 `./specializations/<lang>/` 再进入，否则 LLM 读参数表写码。
@@ -73,11 +73,13 @@ image-read/
 
 ### Phase 1：只产出识图报告
 
-当本 skill 被触发时，**本轮首次实质性输出必须是 ImageRead 报告**，且只允许做下列事情：
+当本 skill 被触发时：先跑 **gates**。环境 FAIL 时首次输出只能是【ImageRead环境未就绪】（含修复步骤），**不是**完整参数表，也**不是** UI。
 
-- 执行 `gates → classify → geometry → structure → visual → output`
+环境 OK 后，**本轮首次实质性输出必须是 ImageRead 报告**，且只允许：
+
+- 执行 `classify → geometry → structure → visual → output`
 - 输出【识图场景】与完整报告区块
-- 标注【需确认】、【差异 / 不确定】、【暂时猜测数值占用】
+- 标注【需确认】、【差异 / 不确定】、【暂时猜测数值占用】（仅限采样不稳的单字段，禁止因 Python 挂了整表猜测）
 
 **Phase 1 禁止：**
 
@@ -100,10 +102,15 @@ ImageRead **自身不进入 Phase 2**；本包职责止于完整报告。
 - 阴影只记不当描边  
 - 设计 px + 注明 scale；用户口头 px 优先  
 - **禁止**本包识图流水线内写码  
+- Python/Pillow 未就绪：**禁止**后续 SOP 与整表估算；先修环境  
+- `cv2` 失败：改用 Pillow 实测，禁止改目测估算  
 
 ## 报告完成门控（强制 · 写 UI 前）
 
-如果你的目标包含“实现图内 UI / 写代码 / 报几何 / 修改布局”，在任何代码、实现描述、布局方案之前，必须先输出完整 ImageRead 报告。
+如果你的目标包含“实现图内 UI / 写代码 / 报几何 / 修改布局”：
+
+- **gates FAIL**：只输出【ImageRead环境未就绪】并停止；**禁止**用猜测凑完整报告再写 UI。  
+- **gates OK**：在任何代码、实现描述、布局方案之前，必须先输出完整 ImageRead 报告。
 
 报告必须至少包含下列区块标题（原样）：
 

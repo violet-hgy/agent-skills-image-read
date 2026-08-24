@@ -14,4 +14,4 @@ metadata:
 - 描边周缘采样；阴影≠描边  
 - 禁止大画布留白当控件宽；未换算不得称设计 px  
 
-工具见 `../gates/SKILL.md`。
+工具见 `../gates/SKILL.md`。gates 未 OK（Python/Pillow FAIL，或仅 cv2 失败却未改 Pillow）时 **禁止**本步：不得目测量尺寸、不得估算填表。
