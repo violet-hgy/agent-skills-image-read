@@ -1,68 +1,73 @@
-# Vision Skills（识图 + 写图）
+# agent-skills-image-read
 
-符合 [Agent Skills](https://agentskills.io/specification) 与 [`npx skills`](https://github.com/vercel-labs/skills) 一键安装约定的能力仓。
+**Agent Skills 安装源 · ImageRead**：**像素级读图报告**，防止 AI 幻觉。**自动挂载于位图**（PNG/JPEG/WebP 等、截图、按图还原、实现图内 UI）。**纯 Figma 不用本包**（MCP 节点已有 px）。**不依赖** project-bindings。
 
-**本仓只含可移植能力，不含任何项目绑定（无 `project-bindings` / 业务路径 / 主题色名）。**
+- **对外产品名：** ImageRead  
+- **安装 id / 目录名：** `image-read`（Agent Skills 要求 `name` 与文件夹一致，仅小写+连字符）  
+- **语言写图：** 可选特化，不是本源必装能力。当前附带 `specializations/qml` 作为一种兼容项；宿主不写 QML 则不必 Read。
+
+本仓 **不含项目绑定**（无业务路径 / 主题色名 / 组件表）。
 
 ```text
-vision-sop-kit/
+agent-skills-image-read/
 ├── README.md
-└── skills/                          ← CLI well-known 容器
-    ├── image-read/                  ← 【识图】语言无关
-    │   ├── SKILL.md
-    │   ├── classify/ gates/ geometry/ structure/ visual/ output/
-    └── write-qml/                   ← 【写图·QML】（未来可加 write-react 等）
+└── skills/
+    └── image-read/                      ← 唯一可安装 skill（ImageRead）
         ├── SKILL.md
-        ├── implement/
-        └── verify/
+        ├── classify/ gates/ geometry/ structure/ visual/ output/
+        └── specializations/             ← 可选 · 语言特化（非识图流水线）
+            └── qml/                     ← 兼容项：消费报告 → QML
+                ├── SKILL.md
+                └── implement/ verify/
 ```
+
+安装后落点因平台而异；skill 正文只按 **相对路径** 调度。
 
 ## 流水线
 
 ```text
-只识图  →  image-read → 结构化报告（可结束）
+ImageRead（默认/唯一必选）  →  结构化像素报告（可视参数表）
+                              →  本包职责结束
+                              →  下游 LLM / 人工 / 任意栈自行读表理解并写码
 
-落 QML  →  宿主项目 SOP
-           → image-read（有图时）
-           → write-qml
-           → 宿主自己的 project-bindings
+写图（可选）  →  specializations/<lang>/  +  宿主 project-bindings
+                宿主 SOP 读仓库推断 GUI 栈；栈匹配且要写码时才进入
 ```
 
-## 一键安装（CLI）
+**只识图 / 评审**：ImageRead 报告即交付，参数表供 LLM 直接消费。
 
-在本机把本目录当成远程仓的本地克隆使用：
+**要写码**：不必用户声明语言；宿主 SOP 读项目（`qml/`、`*.tsx`、`CMakeLists` 等）推断栈。匹配已附带特化则进入 `specializations/<lang>/`；否则 LLM 读参数表按项目代码写码。
+
+`npx skills add … --list` 应只看到 **`image-read`**。QML 带子目录 `metadata.internal: true`，不当独立安装项。
+
+## 一键安装
 
 ```bash
-# 列出可装 skill
-npx skills add "C:/Users/14403/Desktop/vision-sop-kit" --list
+npx skills add <org>/agent-skills-image-read --list
 
-# 装到当前项目（写入 .agents/skills/）
-npx skills add "C:/Users/14403/Desktop/vision-sop-kit" --skill image-read --skill write-qml -a cursor -y
+npx skills add <org>/agent-skills-image-read --skill image-read -a claude-code -y
+npx skills add <org>/agent-skills-image-read --skill image-read -a cursor -y
+npx skills add <org>/agent-skills-image-read --skill image-read -a copilot -y
+npx skills add <org>/agent-skills-image-read --skill image-read -a codex -y
 
-# 或全局
-npx skills add "C:/Users/14403/Desktop/vision-sop-kit" --skill image-read --skill write-qml -a cursor -g -y
+npx skills add <org>/agent-skills-image-read --skill image-read -a claude-code -g -y
 ```
 
-推到 GitHub 后：
+`-a` 见 [skills CLI agents](https://github.com/vercel-labs/skills)。未列出的平台：拷贝 `skills/image-read/` 到该平台 skills 根即可。
 
-```bash
-npx skills add your-org/vision-sop-kit --skill image-read --skill write-qml -a cursor
-```
+## 宿主怎么接
 
-嵌套子目录（`classify/`、`implement/` 等）带 `metadata.internal: true`，避免被 CLI 当成独立可安装 skill。
-
-## 宿主项目怎么接
-
-1. 用 CLI 安装 `image-read` + `write-qml`，或拷贝到 `.cursor/portable-skills/` 由 SOP 显式 Read。  
-2. 在**本仓库自己的** `.cursor/skills/` 写薄胶水 SOP + `project-bindings.md`（路径、主题、翻译、组件）。  
-3. 胶水调度：有图 → Read `image-read` → 写码 → Read `write-qml` → 用本项目 bindings。
+1. `npx skills add … --skill image-read` → 装入 `.cursor/skills/` 等，**自动匹配**识图场景。  
+2. **只识图 / 评审**：ImageRead 出报告即止。  
+3. **要写码**：宿主 SOP 读仓库推断 GUI 栈；匹配 `specializations/<lang>/` 则进入；否则 LLM 读参数表写码。可选 `project-bindings.md`（写码阶段）。  
+4. Mojhon 等已有项目：`design-to-qml` 胶水 + bindings 仍负责 QML 落地与资源门控。
 
 ## 刻意不做
 
-- 不包含 Mojhon / 其它业务的 `project-bindings`、intake、全量 measure  
-- `image-read` 不写代码；`write-qml` 不重新测像素  
-- 顶层 skill 均 `disable-model-invocation: true`，须由宿主 SOP 显式调度  
+- 不把任何一种写图语言当成安装源本体  
+- ImageRead 不写代码；特化包不重新测像素  
+- 嵌套子 skill（classify/gates/…）仍 `internal`，仅顶层 `image-read` 自动挂载
 
-## 扩展其它语言写图
+## 增加其它语言特化
 
-在 `skills/` 下新增 `write-<lang>/`（同结构：`SKILL.md` + `implement/` + `verify/`），保持与 `write-qml` 相同契约：消费 image-read 报告 + 宿主 bindings。
+在 `skills/image-read/specializations/<lang>/` 增加同结构（`SKILL.md` + `implement/` + `verify/`），契约：消费 ImageRead 报告 + 宿主 bindings。不要把新语言提升为仓名或顶层必装 skill。

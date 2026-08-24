@@ -2,7 +2,7 @@
 name: verify
 description: >-
   【特化·QML·校验】落码后收尾：qmllint、尺寸链、布局复校、主题/翻译/资源自检。
-  由 write-qml 调度；路径以宿主 project-bindings 为准。
+  由 specializations/qml 调度（可选兼容项）；路径以宿主 project-bindings 为准。
 disable-model-invocation: true
 metadata:
   internal: "true"
@@ -14,7 +14,7 @@ metadata:
 
 负责**落地后的收尾检查**，避免“改完能跑，但不完整”。
 
-隶属 `specializations/qml`；前置应为 image-read 报告（有图时）+ implement 落码。  
+隶属 ImageRead 的 `specializations/qml`（可选）；前置应为 ImageRead 报告（有图时）+ implement 落码。  
 项目路径、主题、翻译、工具命令以宿主 **project-bindings** 为准；本文件写检查动作。
 
 ## 必查项

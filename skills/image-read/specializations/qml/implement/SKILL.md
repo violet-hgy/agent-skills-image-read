@@ -1,8 +1,8 @@
 ---
 name: implement
 description: >-
-  【特化·QML·落码】将 image-read 报告落到 Qt Quick/QML：布局与尺寸链、变体复用、列表外内距。
-  项目路径/主题见宿主 project-bindings。由 write-qml 调度。
+  【特化·QML·落码】将 ImageRead 报告落到 Qt Quick/QML：布局与尺寸链、变体复用、列表外内距。
+  项目路径/主题见宿主 project-bindings。由 specializations/qml 调度（可选兼容项）。
 disable-model-invocation: true
 metadata:
   internal: "true"
@@ -89,7 +89,7 @@ metadata:
 含大面积透明的 PNG：控件 `width×height` 是**整图**盒子，墨迹会小于盒子。
 
 - 显示尺寸按参数表推导值落，勿盲 `anchors.fill` 或未测透明边就 `centerIn`
-- `fillMode: Image.PreserveAspectFit`（或项目等价）时，scale 由短边约束；推导式见 image-read Showcase / structure
+- `fillMode: Image.PreserveAspectFit`（或项目等价）时，scale 由短边约束；推导式见 ImageRead Showcase / structure
 - 换图尺寸冲突见 bindings + `asset-swap` 门控
 
 ### 6. 列表：外距 ≠ `ListView.spacing`
@@ -124,7 +124,7 @@ metadata:
 3. 用 `layoutStyle` / `variant` / 只读常量区分；新稿差异只进新分支
 4. 变体外框变了 → 重算内容宽再写入
 
-本仓库示例（数值属 bindings）：`MessageBox` 默认 391 vs 注意类 375。
+变体外框数值只来自宿主 bindings / 本轮参数表，禁止把其它项目的弹窗宽当本 skill 默认值。
 
 ### 10. 改动隔离与猜测
 

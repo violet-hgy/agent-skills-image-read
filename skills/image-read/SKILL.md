@@ -1,42 +1,61 @@
 ---
 name: image-read
 description: >-
-  【识图】PNG/截图/切图像素级识图与结构化报告。禁止沉默猜测。不写代码、不绑定 GUI 语言或业务仓库。由宿主 SOP 显式调度；勿单独自动触发。
-disable-model-invocation: true
+  像素级读图报告，防止 AI 幻觉。有附图/截图/切图（PNG/JPEG/WebP/GIF/BMP 等位图），或按图还原、
+  像素对齐、设计评审、实现图内 UI、写码前量尺寸时自动适用。对位图实测几何与视觉并输出【识图场景】
+  与可视参数表；禁止未读图写尺寸。纯 Figma（MCP 已给节点 px）不要用本 skill。不写代码、不依赖 project-bindings。
+  Agent Skills 安装源（id: image-read）。
+disable-model-invocation: false
 ---
 
-# 读图 Image-Read（复合 · 总调度）
+# ImageRead
 
 ## 定位
 
 ```text
-读图 (本包)  →  结构化像素报告
-写图         →  同仓 write-*（当前 write-qml）+ 宿主 project-bindings
+ImageRead（本包）  →  结构化像素报告（可视参数表）  →  结束
+
+写图（可选）      →  ./specializations/<lang>/  +  宿主 project-bindings
+                   由宿主 SOP 读仓库推断 GUI 栈；匹配且要写码时才进入
 ```
 
-**只读图、只出数。** 不实现 UI，不改 Figma，不落资源清单。  
-**不含**项目绑定。
+**只读图、只出数。** 不实现 UI，不改 Figma，不落资源清单，**不进入任何语言特化**。  
+**不含**项目绑定；**不负责推断项目 GUI 语言**（属宿主 SOP）。
 
-本包是 **识图主能力**；写图见同级 `../write-qml/`（及未来 `write-*`）。
+报告中的参数表供 LLM 直接消费。要写码时：宿主读仓库（`qml/`、`*.tsx` 等）推断栈 → 匹配特化则进 `specializations/`，否则 LLM 读表写码。**禁止**在本包识图流水线内写码。
 
-## 触发（由宿主调度，勿自触发）
+## 自动触发（Agent 自动挂载）
 
-宿主在「有图要量 / 只要识图报告」时 Read 本文件，再按下列顺序读子 skill。
+**位图** = 栅格图：PNG、JPEG/JPG、WebP、GIF、BMP、TIFF，以及截图/聊天附图（格式不论）。不含 SVG 矢量源、不含 Figma 节点树。
+
+**命中任一且像素来自位图时，必须先 Read 并执行本 skill 全流程，再写 UI 代码或报尺寸：**
+
+- 用户附图、控件切图、整页截图（PNG/JPEG/WebP 等）
+- 意图：按图还原、像素对齐、量尺寸、设计评审、**实现图内 UI**（且源是图）
+- 对话要求对 **位图** 出【识图场景】或像素表
+
+**硬门控：** 有位图要写 UI / 报几何 → **禁止**跳过本 skill 直接写码或「大约」填数。
+
+**不触发：**
+
+- **纯 Figma**（仅链接/`node-id`，无用户位图）：用 Figma 节点 px，不要对本 skill / 导出 PNG 再量
+- 无图、仅改已知文案/色/逻辑
+
+**与 project-bindings 无关：** 有无宿主 `project-bindings.md` **不影响** ImageRead；bindings 仅在写码阶段需要。
+
+**【识图场景】码（classify 产出）：** `dialog-sheet`、`delegate-row`、`control-full`、`page-layout`、`showcase-align`、`overlay-badge`、`visual-tweak`、`measure-only`、`text-extract`。细则见 `./classify/SKILL.md`。
 
 ## 嵌套结构
 
 ```text
 image-read/
 ├── SKILL.md
-├── classify/
-├── geometry/
-├── visual/
-├── structure/
-├── gates/
-└── output/
+├── classify/ gates/ geometry/ structure/ visual/ output/
+└── specializations/          ← 可选，非本流水线
+    └── qml/
 ```
 
-## 调度顺序（强制）
+## 调度顺序（强制 · 仅识图）
 
 1. `./gates/SKILL.md`
 2. `./classify/SKILL.md` → 输出【识图场景】
@@ -45,7 +64,10 @@ image-read/
 5. `./visual/SKILL.md`
 6. `./output/SKILL.md` → 完整报告
 
-结束后把报告交给宿主写码 SOP；本包职责终止。
+结束后输出完整报告；**本包职责终止**。
+
+- **只识图 / 评审** → 报告即交付。  
+- **要写码** → 由宿主 SOP 读仓库推断 GUI 栈；匹配 `./specializations/<lang>/` 再进入，否则 LLM 读参数表写码。
 
 ## 硬规则
 
@@ -54,8 +76,12 @@ image-read/
 - 有图必须先有【识图场景】  
 - 阴影只记不当描边  
 - 设计 px + 注明 scale；用户口头 px 优先  
-- **禁止**本包内写码  
+- **禁止**本包识图流水线内写码  
 
-## 迁移
+## 安装
 
-整目录复制到其它 Agent 即可；宿主改「Read 路径」指向本 `SKILL.md`。
+```text
+npx skills add <org>/agent-skills-image-read --skill image-read
+```
+
+装入各平台 `.cursor/skills/` / `.agents/skills/` 等后 **自动匹配** 识图场景。嵌套子 skill 仍 `metadata.internal: true`，仅本包自动挂载。
