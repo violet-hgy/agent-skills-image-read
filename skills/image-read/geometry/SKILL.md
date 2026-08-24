@@ -2,6 +2,8 @@
 name: image-read-geometry
 description: 读图·几何实测（由 image-read 调度）。
 disable-model-invocation: true
+metadata:
+  internal: true
 ---
 
 # Geometry
@@ -13,3 +15,5 @@ disable-model-invocation: true
 - 禁止大画布留白当控件宽；未换算不得称设计 px  
 
 工具见 `../gates/SKILL.md`。gates 未 OK 时 **禁止**本步。测图用任一准确可用后端（Python 仅为运行时，不绑定 cv2）。禁止目测估算。
+
+多元素 / `page-layout`：必须按【元素清单表】逐项测完再收工；默认无损原图，禁止少测。

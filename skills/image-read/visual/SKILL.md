@@ -1,9 +1,9 @@
 ---
-name: visual
+name: image-read-visual
 description: 读图·视觉实测（由 image-read 调度）。
 disable-model-invocation: true
 metadata:
-  internal: "true"
+  internal: true
 ---
 
 # Visual

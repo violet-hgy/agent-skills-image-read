@@ -56,6 +56,13 @@ npx skills add <org>/agent-skills-image-read --skill image-read -a claude-code -
 
 `-a` 见 [skills CLI agents](https://github.com/vercel-labs/skills)。未列出的平台：拷贝 `skills/image-read/` 到该平台 skills 根即可。
 
+
+## 一次对齐与原图默认（硬约定）
+
+- **默认**：开发提供的位图 = **无损原图**。禁止以有损/信息不足为由少测，或要求开发二次确认再对齐。
+- **多元素**：先【元素清单】再逐项实测；【测量完备性】含猜测占比门控。
+- **一次对齐**：宿主写码同轮自校；推荐收尾语 `【一次对齐完成】`（也可用 `【对齐完成】`）。
+
 ## 宿主怎么接
 
 1. `npx skills add … --skill image-read` → 装入 `.cursor/skills/` 等，**自动匹配**识图场景。  

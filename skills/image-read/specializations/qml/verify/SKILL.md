@@ -1,11 +1,9 @@
 ---
-name: verify
+name: specialization-qml-verify
 description: >-
   【特化·QML·校验】落码后收尾：qmllint、尺寸链、布局复校、主题/翻译/资源自检。
-  由 specializations/qml 调度（可选兼容项）；路径以宿主 project-bindings 为准。
+  由 specializations/qml 调度；路径以宿主 project-bindings 为准。
 disable-model-invocation: true
-metadata:
-  internal: "true"
 ---
 
 # Specialization · QML · Verify
@@ -14,7 +12,7 @@ metadata:
 
 负责**落地后的收尾检查**，避免“改完能跑，但不完整”。
 
-隶属 ImageRead 的 `specializations/qml`（可选）；前置应为 ImageRead 报告（有图时）+ implement 落码。  
+隶属 `specializations/qml`；前置应为 image-read 报告（有图时）+ implement 落码。  
 项目路径、主题、翻译、工具命令以宿主 **project-bindings** 为准；本文件写检查动作。
 
 ## 必查项
@@ -40,6 +38,16 @@ metadata:
 - 若尺寸链在代码里已经矛盾（例如内容宽绑定会超过外框），视为未完成，当场改掉
 
 禁止把“跑起来看一眼才知道错”的可算术误差交给用户。
+
+## 一次对齐（同轮 · 强制）
+
+有 ImageRead 报告时，收尾前必须：
+
+1. 对照【元素清单】逐项核对已落码外框 / gap / 底栏等  
+2. 容差：外框与关键间距 ±1px（设计 px）；字相关盒 ±2px；超标 → 当场改码再校（本轮内部，不问开发）  
+3. 默认图为无损原图：禁止以“位图有损/要二次精调”为由要求开发确认  
+4. 未覆盖交互态只记【差异】  
+5. 收尾推荐：`【一次对齐完成】（图中态 · 容差内）`；也可用 `【对齐完成】（图中可见态已按参数表落码并自校）`。禁止“请二次确认再对齐”
 
 ## 落地后执行自检（必做）
 
@@ -139,8 +147,9 @@ metadata:
 
 收尾回复至少包含：
 
-- 已对齐的关键项
-- 仍不确定 / 未稳定读到的项
+- 【一次对齐完成】或【对齐完成】（图中可见态；推荐前者）
+- 已对齐的关键项（可对照元素清单勾选）
+- 仍不确定 / 未稳定读到的项（真缺信息，非无损原图借口）
 - 若有额外修正，明确告知用户
 
 ## 禁止
@@ -149,6 +158,7 @@ metadata:
 - 改组件却不更新组件目录
 - 发现不确定项却沉默收尾
 - 把已能算术核对的尺寸误差留给用户二次视觉确认
+- 以“位图有损/默认信息不完整”为由要求开发二次确认对齐
 - 未跑 QML 语法自检（`qmllint` 或等价编译）就宣告完成
 - ScrollView 高度只绑 `implicitHeight` 且无最小高度兜底
 - 改过控件宽高却不做【布局复校】（父级/邻接 gap/列表外内距/拉伸）就宣告完成
