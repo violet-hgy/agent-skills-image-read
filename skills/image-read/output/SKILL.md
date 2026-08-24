@@ -38,3 +38,11 @@ metadata:
 | 【结构专表】 | 列表 itemSpacing、弹层分列、透明 pad 等场景专数 |
 
 **禁止**在报告末尾夹带 QML/React/Swift 等实现代码；写码属于宿主特化或 LLM 自由发挥，不属于 ImageRead 输出。
+
+报告最后必须追加一行结束语（原样）：
+
+```text
+【ImageRead完成，等待宿主消费报告；本阶段不写代码】
+```
+
+缺少该结束语：视为 Phase 1 未闭环完成。
