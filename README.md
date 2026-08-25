@@ -1,6 +1,6 @@
 # agent-skills-image-read
 
-**Agent Skills 安装源 · ImageRead**：**像素级读图报告**，防止 AI 幻觉。**Python 为测量运行时**；测图后端按准确可用选择（**不绑定 cv2**），失败先自动修，无后端则停止。**自动挂载于位图**。**纯 Figma 不用本包**。
+**Agent Skills 安装源 · ImageRead**：**像素级读图报告**，可直接根据图片分析并输出ui结构，以及各元素之间的像素大小，用于agent根据图片生成或对齐对应ui，防止ai幻觉导致的误差。**Python 为测量工具**；测图后端按准确可用选择（**不绑定 cv2**），失败先自动修，无后端则停止。**自动挂载于位图**。**有足够的figma mcp额度，可不用本包**。
 
 - **对外产品名：** ImageRead  
 - **安装 id / 目录名：** `image-read`（Agent Skills 要求 `name` 与文件夹一致，仅小写+连字符）  

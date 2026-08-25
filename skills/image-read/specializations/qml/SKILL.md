@@ -44,6 +44,9 @@ image-read 报告  →  本包写 QML  →  项目 bindings（路径/主题/翻�
 | discrete-repeat | 一条 delegate + model，禁止按条数复制 |
 | dialog 面板外框 | Dialog/Popup 内容宽高，不含遮罩 |
 | showcase 显示盒 | 按报告推导宽高与 topMargin；勿盲 centerIn |
+| 图标墨迹大小 | 内容显示尺寸（**不是**整图实际大小） |
+| 图标图片实际大小 | 资源外框（含透明）；与墨迹分列 |
+| 图标透明边距 | 仅独立切图；内嵌截图写不适用 |
 
 细节见 `implement/`、`verify/`。
 
