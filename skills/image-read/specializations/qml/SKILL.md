@@ -30,6 +30,8 @@ image-read 报告  →  本包写 QML  →  项目 bindings（路径/主题/翻�
 3. `./implement/SKILL.md` — 落码  
 4. `./verify/SKILL.md` — qmllint、尺寸链、布局复校  
 
+**落码结构跟分区树，不跟清单升格。** 清单单独一行 + 独立高宽 ≠ 新建 Card/列；用清单「从属」路径放进已有卡组。
+
 ## 报告字段 → QML（速查）
 
 | 读图字段 | 典型落点 |
