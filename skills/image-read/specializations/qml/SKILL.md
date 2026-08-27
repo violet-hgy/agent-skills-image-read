@@ -27,7 +27,7 @@ image-read 报告  →  本包写 QML  →  项目 bindings（路径/主题/翻�
 
 1. **报告门检**：确认【像素参数表】等关键区块已在对话中；通过后写 `【写码许可】…`  
 2. 确认宿主已提供 **project-bindings**（目录、`Colors`/`qsTr`、组件映射）  
-3. `./implement/SKILL.md` — 落码  
+3. `./implement/SKILL.md` — 落码（**先实测/推导，猜测不编造**；见 implement「落码执行」）  
 4. `./verify/SKILL.md` — qmllint、尺寸链、布局复校  
 
 **落码结构跟分区树，不跟清单升格。** 清单单独一行 + 独立高宽 ≠ 新建 Card/列；用清单「从属」路径放进已有卡组。
@@ -36,8 +36,9 @@ image-read 报告  →  本包写 QML  →  项目 bindings（路径/主题/翻�
 
 | 读图字段 | 典型落点 |
 | --- | --- |
+| **参照系 / 相对=** | 先按标注原点理解再换算写入；缺【参照系】或无相对标签 → 禁止落码 |
 | 控件外框 | `width`/`height` 或 Layout min/preferred/max（经 bindings 的 `Metrics.dp`） |
-| 距内容区边 | `anchors.*Margin` / `Layout.margins` |
+| 距内容区边 | `anchors.*Margin` / `Layout.margins`（相对**落点文件根**，不是截图顶） |
 | itemSpacing | 仅 `ListView.spacing` / 列表向 Column spacing |
 | 列表外距 | 容器/父 Layout margin，禁止塞进 `ListView.spacing` |
 | border / radius / 色 | `border.*` / `radius` / bindings 主题色 |
