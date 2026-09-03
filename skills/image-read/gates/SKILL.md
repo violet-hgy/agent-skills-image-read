@@ -2,8 +2,6 @@
 name: image-read-gates
 description: 读图·环境与反幻觉。Python 仅为测量运行时；测图后端按准确可用选择，不绑定 cv2。
 disable-model-invocation: true
-metadata:
-  internal: true
 ---
 
 # Gates

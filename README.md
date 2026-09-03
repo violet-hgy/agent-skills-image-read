@@ -1,12 +1,12 @@
 # agent-skills-image-read
 
-**Agent Skills 安装源 · ImageRead**：**像素级读图报告**，可直接根据图片分析并输出ui结构，以及各元素之间的像素大小，用于agent根据图片生成或对齐对应ui，防止ai幻觉导致的误差。**Python 为测量工具**；测图后端按准确可用选择（**不绑定 cv2**），失败先自动修，无后端则停止。**自动挂载于位图**。**有足够的figma mcp额度，可不用本包**。
+**Agent Skills 安装源 · ImageRead**：**像素级读图报告**，可直接根据图片分析并输出 UI 结构，以及各元素之间的像素大小，用于 agent 根据图片生成或对齐对应 UI，防止 AI 幻觉导致的误差。**Python 为测量工具**；测图后端按准确可用选择（**不绑定 cv2**），失败先自动修，无后端则停止。**自动挂载于位图**。**有足够的 Figma MCP 额度，可不用本包**。
 
 - **对外产品名：** ImageRead  
 - **安装 id / 目录名：** `image-read`（Agent Skills 要求 `name` 与文件夹一致，仅小写+连字符）  
-- **语言写图：** 可选特化，不是本源必装能力。当前附带 `specializations/qml` 作为一种兼容项；宿主不写 QML 则不必 Read。
+- **本包只识图**：输出结构化参数报告后职责结束。不写代码、不调度写码 skill、不含 `specializations/`。
 
-本仓 **不含项目绑定**（无业务路径 / 主题色名 / 组件表）。
+本仓 **不含项目绑定**（无业务路径 / 主题色名 / 组件表），也 **不含写图语言特化**。写码由宿主 SOP / 独立语言 skill（如 `qt-quick-qml`）消费报告完成。
 
 ```text
 agent-skills-image-read/
@@ -15,11 +15,7 @@ agent-skills-image-read/
     └── image-read/                      ← 唯一可安装 skill（ImageRead）
         ├── SKILL.md
         ├── classify/ gates/ geometry/ structure/ visual/ output/
-        ├── scripts/                     ← 探测：Python + 任一可用测图后端
-        └── specializations/             ← 可选 · 语言特化（非识图流水线）
-            └── qml/                     ← 兼容项：消费报告 → QML
-                ├── SKILL.md
-                └── implement/ verify/
+        └── scripts/                     ← 探测：Python + 任一可用测图后端
 ```
 
 安装后落点因平台而异；skill 正文只按 **相对路径** 调度。
@@ -30,16 +26,13 @@ agent-skills-image-read/
 ImageRead（默认/唯一必选）  →  结构化像素报告（可视参数表）
                               →  本包职责结束
                               →  下游 LLM / 人工 / 任意栈自行读表理解并写码
-
-写图（可选）  →  specializations/<lang>/  +  宿主 project-bindings
-                宿主 SOP 读仓库推断 GUI 栈；栈匹配且要写码时才进入
 ```
 
 **只识图 / 评审**：ImageRead 报告即交付，参数表供 LLM 直接消费。
 
-**要写码**：不必用户声明语言；宿主 SOP 读项目（`qml/`、`*.tsx`、`CMakeLists` 等）推断栈。匹配已附带特化则进入 `specializations/<lang>/`；否则 LLM 读参数表按项目代码写码。
+**要写码**：不在本仓。宿主 SOP 读仓库推断 GUI 栈，再进入独立写码 skill 或直接按参数表落码。
 
-`npx skills add … --list` 应只看到 **`image-read`**。QML 带子目录 `metadata.internal: true`，不当独立安装项。
+`npx skills add … --list` 应只看到 **`image-read`**。
 
 ## 一键安装
 
@@ -68,15 +61,11 @@ npx skills add <org>/agent-skills-image-read --skill image-read -a claude-code -
 
 1. `npx skills add … --skill image-read` → 装入 `.cursor/skills/` 等，**自动匹配**识图场景。  
 2. **只识图 / 评审**：ImageRead 出报告即止。  
-3. **要写码**：宿主 SOP 读仓库推断 GUI 栈；匹配 `specializations/<lang>/` 则进入；否则 LLM 读参数表写码。可选 `project-bindings.md`（写码阶段）。  
-4. Mojhon 等已有项目：`design-to-qml` 胶水 + bindings 仍负责 QML 落地与资源门控。
+3. **要写码**：宿主 SOP 或独立语言 skill 消费参数表；可选 `project-bindings.md`（写码阶段，不在本仓）。  
+4. Mojhon 等已有项目：`design-to-qml` 胶水 + bindings 仍负责 QML 落地与资源门控；写码用 `qt-quick-qml`（不嵌在本包内）。
 
 ## 刻意不做
 
-- 不把任何一种写图语言当成安装源本体  
-- ImageRead 不写代码；特化包不重新测像素  
+- 不内嵌任何写图语言特化（已移除 `specializations/`）  
+- ImageRead 不写代码、不调度写码 skill  
 - 嵌套子 skill（classify/gates/…）仍 `internal`，仅顶层 `image-read` 自动挂载
-
-## 增加其它语言特化
-
-在 `skills/image-read/specializations/<lang>/` 增加同结构（`SKILL.md` + `implement/` + `verify/`），契约：消费 ImageRead 报告 + 宿主 bindings。不要把新语言提升为仓名或顶层必装 skill。
