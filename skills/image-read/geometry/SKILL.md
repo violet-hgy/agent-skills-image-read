@@ -63,4 +63,6 @@ disable-model-invocation: true
 
 工具见 `../gates/SKILL.md`。gates 未 OK 时 **禁止**本步。测图用任一准确可用后端（Python 仅为运行时，不绑定 cv2）。禁止目测估算。
 
+采像素优先 `python -c` / stdin / 本包 `scripts/`。确需落盘的一次性测图脚本：只允许系统临时目录或 `.cursor/tmp_measure_*.py`，**出数或失败后立刻 Delete**（见顶层 `../SKILL.md`「测图临时脚本」）。禁止把测图 py 留在仓库。
+
 多元素 / `page-layout`：按【测量范围】只测清单内项。`layout-only` 只测容器外框/分栏/gap，禁止拆内部控件。`named-extract` 只测包含树中命中维度的节点。控件级范围必须含可交互叶子，禁止只测容器外框。同排分段粒仅在控件级按 structure 测。

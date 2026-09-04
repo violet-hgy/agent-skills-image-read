@@ -69,3 +69,4 @@ npx skills add <org>/agent-skills-image-read --skill image-read -a claude-code -
 - 不内嵌任何写图语言特化（已移除 `specializations/`）  
 - ImageRead 不写代码、不调度写码 skill  
 - 嵌套子 skill（classify/gates/…）仍 `internal`，仅顶层 `image-read` 自动挂载
+- **测图临时 `.py` 同轮删除**：采像素优先不落盘；若写入 `.cursor/tmp_measure_*.py` 等，出数或失败后立刻删，禁止当工程文件留下/提交
