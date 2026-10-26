@@ -1,72 +1,47 @@
 # agent-skills-image-read
 
-**Agent Skills 安装源 · ImageRead**：**像素级读图报告**，可直接根据图片分析并输出 UI 结构，以及各元素之间的像素大小，用于 agent 根据图片生成或对齐对应 UI，防止 AI 幻觉导致的误差。**Python 为测量工具**；测图后端按准确可用选择（**不绑定 cv2**），失败先自动修，无后端则停止。**自动挂载于位图**。**有足够的 Figma MCP 额度，可不用本包**。
+UIRead（安装标识 image-read）：从截图、设计图片、Figma 节点等参考中解析客户端与前端 UI 的布局骨架、容器关系、控件组成、视觉样式和可见状态。
 
-- **对外产品名：** ImageRead  
-- **安装 id / 目录名：** `image-read`（Agent Skills 要求 `name` 与文件夹一致，仅小写+连字符）  
-- **本包只识图**：输出结构化参数报告后职责结束。不写代码、不调度写码 skill、不含 `specializations/`。
+输入来源并列、可选。Python 测量、节点读取、外部检索位于按需工具层，不是整个流程的必需依赖。本包只交付解析报告，后续实现由宿主或独立写码 skill 消费报告完成。
 
-本仓 **不含项目绑定**（无业务路径 / 主题色名 / 组件表），也 **不含写图语言特化**。写码由宿主 SOP / 独立语言 skill（如 `qt-quick-qml`）消费报告完成。
+## 流程
 
-```text
-agent-skills-image-read/
-├── README.md
-└── skills/
-    └── image-read/                      ← 唯一可安装 skill（ImageRead）
-        ├── SKILL.md
-        ├── classify/ gates/ geometry/ structure/ visual/ output/
-        └── scripts/                     ← 探测：Python + 任一可用测图后端
-```
+确定来源、范围、深度与场景 → 概览读取并匹配内置布局规则 → 建立布局骨架 → 沿骨架按区域细读图片或 Figma 节点 → 按需补充控件、样式与测量 → 输出报告。
 
-安装后落点因平台而异；skill 正文只按 **相对路径** 调度。
+后续识别以布局树为索引，每项结果归属到对应区域。已有布局分析经核对后复用；新证据与骨架冲突时先修正结构，再继续细化。概览可按需读取图片或节点，不要求在看到参考前凭空确定布局，也无须用户逐阶段确认。
 
-## 流水线
+优先使用内置规则。确有未覆盖的布局或控件、且不能由已知模式组合解释时，针对缺口外部检索；用户明确要求检索或核验指定资料时遵循用户要求。外部资料不能替代目标 UI 的实际参数。
 
-```text
-ImageRead（默认/唯一必选）  →  结构化像素报告（可视参数表）
-                              →  本包职责结束
-                              →  下游 LLM / 人工 / 任意栈自行读表理解并写码
-```
+## 内置内容
 
-**只识图 / 评审**：ImageRead 报告即交付，参数表供 LLM 直接消费。
+- 布局：应用壳、侧栏详情、主从视图、多栏工作区、纵横排列、网格、流式、瀑布、表单、列表表格树、内容分节、页签、浮层、紧凑视口。
+- 控件：按钮、复选/单选/开关、分段/标签、滑条/步进器、文本输入、下拉、日期时间、上传/编辑、导航、菜单、列表、表格、树、卡片、滚动条、弹窗、反馈、媒体与图表。
+- 场景：设置、编辑器、资源管理、播放监控、后台数据管理、仪表盘、表单流程、详情、登录、内容搜索、对话通知、看板日历时间线，以及跨场景浮层与资源分析。
 
-**要写码**：不在本仓。宿主 SOP 读仓库推断 GUI 栈，再进入独立写码 skill 或直接按参数表落码。
+规则是观察与展开依据，不是要强加给参考图的模板。单视口不证明响应式机制，可见状态不证明不可见交互。
 
-`npx skills add … --list` 应只看到 **`image-read`**。
+## 文件组织
 
-## 一键安装
+唯一对外入口为 skills/image-read/SKILL.md，安装 id 保持不变。
+classify、structure、geometry、visual、gates、output 由主入口按需调度。
+references/ 内置布局、控件、组合场景、来源适配与外部检索规则。
+scripts/ 保留 Python 解释器解析与像素测量环境探测。
+
+## 工具与报告
+
+Python 仅在精确采样时探测；默认探测不安装依赖，显式修复开关才尝试一次 Pillow 安装。Pillow 或 OpenCV 等任一可用后端即可，不强制 cv2。
+Figma 仅在提供该来源且可访问时读取，不要求同时提供图片或 Python。
+工具失败只影响依赖字段；若精确测量是核心目标，必须明确其未完成。
+
+报告按范围与深度裁剪，包含布局骨架、控件/样式、证据与覆盖结果。
+关键结论区分源属性、像素实测、计算推导、视觉推断、未知。旧像素参数表可作为精确测量附件，取消逐任务强制全表和固定结束语。
+
+## 安装
+
+沿用原安装方式：
 
 ```bash
-npx skills add <org>/agent-skills-image-read --list
-
-npx skills add <org>/agent-skills-image-read --skill image-read -a claude-code -y
-npx skills add <org>/agent-skills-image-read --skill image-read -a cursor -y
-npx skills add <org>/agent-skills-image-read --skill image-read -a copilot -y
 npx skills add <org>/agent-skills-image-read --skill image-read -a codex -y
-
-npx skills add <org>/agent-skills-image-read --skill image-read -a claude-code -g -y
 ```
 
-`-a` 见 [skills CLI agents](https://github.com/vercel-labs/skills)。未列出的平台：拷贝 `skills/image-read/` 到该平台 skills 根即可。
-
-
-## 一次对齐与原图默认（硬约定）
-
-- **默认**：开发提供的位图 = **无损原图**。禁止以有损/信息不足为由少测，或要求开发二次确认再对齐。
-- **测量范围**：`layout-only`（只要整体布局，不拆内部控件）/ 点名子集 / 整页实现。**整页截图 ≠ 全展开叶子**。
-- **任务合同「一次对齐」**：由**宿主 SOP**整链执行（参数→落码→自校）。ImageRead **只交识图前置报告**，不写码、不宣称对齐完成。
-- **报告优先**：位图任务必须先对用户输出【像素参数表】；禁止以「尽快可见效果/先做 UI」跳过报告去写码。
-
-## 宿主怎么接
-
-1. `npx skills add … --skill image-read` → 装入 `.cursor/skills/` 等，**自动匹配**识图场景。  
-2. **只识图 / 评审**：ImageRead 出报告即止。  
-3. **要写码**：宿主 SOP 或独立语言 skill 消费参数表；可选 `project-bindings.md`（写码阶段，不在本仓）。  
-4. Mojhon 等已有项目：`design-to-qml` 胶水 + bindings 仍负责 QML 落地与资源门控；写码用 `qt-quick-qml`（不嵌在本包内）。
-
-## 刻意不做
-
-- 不内嵌任何写图语言特化（已移除 `specializations/`）  
-- ImageRead 不写代码、不调度写码 skill  
-- 嵌套子 skill（classify/gates/…）仍 `internal`，仅顶层 `image-read` 自动挂载
-- **测图临时 `.py` 同轮删除**：采像素优先不落盘；若写入 `.cursor/tmp_measure_*.py` 等，出数或失败后立刻删，禁止当工程文件留下/提交
+其它宿主可通过对应 agent 参数安装，或复制 skills/image-read/ 至其 skills 根目录。内部参考使用相对路径。

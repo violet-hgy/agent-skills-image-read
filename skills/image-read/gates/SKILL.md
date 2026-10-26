@@ -1,61 +1,47 @@
 ---
 name: image-read-gates
-description: 读图·环境与反幻觉。Python 仅为测量运行时；测图后端按准确可用选择，不绑定 cv2。
+description: UI 解析的按需工具选择、调用条件、局部降级及证据校验。
 disable-model-invocation: true
 ---
 
-# Gates
+# Tools & Evidence Gates
 
-**本步未放行，禁止进入 classify / geometry / structure / visual / output，禁止写 UI，禁止用估算填像素表。**
+这是工具层，不是 UI 解析的全局前置门槛。classify、结构观察和内置模式匹配可以先执行。
+工具调用服务于布局分析：概览读取用于建立骨架；局部识别、节点细读和测量则依据骨架节点选择目标，并将结果回填原节点。
+调用局部工具前明确所属区域、需要解决的字段和来源定位。骨架不清的部分先补结构证据，不盲目扩大叶子读取或测量范围。
 
-## 定位
+## 何时使用工具
 
-- **Python**：测图像素的**运行时工具**（真解释器 3.10+，绝对路径；禁止 WindowsApps 占位符），不是业务依赖。
-- **测图后端**：**不强制 cv2**。Pillow、OpenCV 或其它能在该 Python 上**实测像素**的库均可。
-- **选型原则**：哪个能准确开图、量宽高、采样像素，就用哪个；报告【元数据】写明实际后端。
+- 图片观察足以支持区域和控件识别时，直接解析。
+- 需要精确截图尺寸、位置、间距、颜色或 alpha/墨迹框时，使用 Python 或其它准确可用的测量工具。
+- 提供 Figma 链接/节点且有可用访问能力时，按来源适配读取节点；Figma 不要求 Python，也不要求先导出图片。
+- 内置规则未覆盖布局或控件时，按 [../references/external-research.md](../references/external-research.md) 检索。
+- 不为了工具齐全而安装依赖，不为了常见 UI 分类查询外部资料。
 
-## 放行条件
+## Python 测量
 
-`OK|python` **且**至少一种测图后端 `OK`（如 `OK|pillow` 或 `OK|cv2`）。
+保留真实 Python 3.10+ 及 Pillow / OpenCV 等后端的使用方式；不强制 cv2。
+只在选择 Python 测量后探测环境，优先复用现有解释器和后端。
 
-Python FAIL，或**没有任何**可用测图后端 → **环境未就绪**，停止。
+Windows：powershell -NoProfile -File "<skill-root>/scripts/probe-measure-env.ps1"
 
-## 强制探测
+其它平台：python3 <skill-root>/scripts/probe-measure-env.py
 
-宿主有 `env-detect` 时先跑 `measure` profile。否则：
+默认探测不安装依赖。Python 可用且至少一个后端可用即可测量，不必修复未使用的可选后端。
+确有测量需要且无可用后端时，在现有授权与环境规则允许下可用 -Repair（PowerShell）或 --repair（Python）尝试一次 Pillow 安装，然后重试。
+不自动安装多套 OpenCV，不循环修复。需要其它专用后端时按具体任务选择。
 
-```powershell
-powershell -NoProfile -File "<本 skill 根>/scripts/probe-measure-env.ps1"
-```
+探测成功只说明工具可用，仍需实际打开本轮输入并采样；不得拿探测结果当测量证据。
+记录实际运行时、后端、输入及影响结果的缩放或阈值。一次性测量脚本优先 stdin 或命令行；落盘则放临时目录，结束后清理。
 
-Unix：用真 `python3` 跑 `<本 skill 根>/scripts/probe-measure-env.py`。
+## 节点读取与局部降级
 
-```text
-OK|python|<abs>|...
-OK|pillow|<ver>     ← 常见默认后端（够用即可）
-OK|cv2|<ver>        ← 可选；已可用或修复成功时标注，非必需
-FAIL|<tool>|<reason>
-```
+来源适配见 [../references/sources.md](../references/sources.md)。遵守当前环境相应工具及 skill 的调用要求。
+节点无法访问时，说明读取缺口；如已有截图则继续截图解析。没有截图时不能声称看过界面。
+测量工具失败时继续可支持的结构与样式分析，把依赖该工具的精确字段列为未完成。
+若用户核心目标就是精确测量，报告应明确“精确测量未完成”，不能用结构分析宣称全部完成。
 
-## 失败处理（强制）
+## 交付检查
 
-任一**当前选用**的测图手段失败时：
-
-1. **禁止**目测估算填【像素参数表】  
-2. **先自动修该手段**（对应 `pip install` 至多一次，修好立刻重试）  
-3. **仍失败** → 换另一种已探测可用的后端继续实测  
-4. **所有后端都不可用** → 【ImageRead环境未就绪】，停止后续 SOP  
-
-不要绑定「必须先修 cv2 才能 Pillow」。顺序由**当前可用性与测量准确度**决定；脚本默认会确保至少 Pillow 可装可测，并顺带探测 cv2。
-
-## 环境 FAIL → 不往下走
-
-```text
-【ImageRead环境未就绪】
-- FAIL：<python 和/或 全部测图后端>
-- 已自动尝试：真 Python；对各后端各至多一次 pip 修复
-- 下一步：人工安装 Python 3.10+ 或设 PYTHON_EXE 后重跑探测
-- 本轮禁止：classify 及之后、估算填表、写 UI
-```
-
-【暂时猜测数值占用】仅用于**已有可用测图后端**时的单字段采样不稳，不得用于「库挂了所以整表估算」。
+精确字段有源属性、实测或可追溯推导；推断与未知已标注；关键来源冲突已保留。
+完成度按范围、深度、请求字段及现有证据判断，不用统一猜测百分比或固定区块数替代检查。
